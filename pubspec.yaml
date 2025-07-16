@@ -104,3 +104,8 @@ flutter_native_splash:
   image: assets/icon/icon.jfif # or your custom splash image
   android: true
   ios: true
+  android_gravity: center
+
+  android_12:
+    image: assets/icon/icon.jfif
+    icon_background_color: "#ffffff"
