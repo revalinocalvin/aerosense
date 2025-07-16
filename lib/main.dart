@@ -54,8 +54,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
         final logs = Map<String, dynamic>.from(data['Logs'] ?? {});
         setState(() {
           humidity = (data['Humidity'] ?? 0).toDouble();
-          gas = (logs['MQ135'] ?? 0).toDouble();
-          temperature = (logs['Temperature'] ?? 0).toDouble();
+          gas = (data['MQ135'] ?? 0).toDouble();
+          temperature = (data['Temperature'] ?? 0).toDouble();
           dust = 0.0;
         });
       }

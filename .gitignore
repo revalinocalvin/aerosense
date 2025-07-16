@@ -5,6 +5,7 @@
 .packages
 .pub-cache/
 build/
+
 # If you use IntelliJ or Android Studio:
 .idea/
 *.iml
@@ -35,3 +36,6 @@ ios/build/
 
 # Others
 *.log
+.idea/libraries/Dart_SDK.xml
+.idea/libraries/Flutter_Plugins.xml
+aerosense.iml
