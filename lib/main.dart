@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'screens/sensor_data_page.dart'; // Import the new screen file
+import 'screens/sensor_data_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // *** FIX 1: Enable Edge-to-Edge display ***
-  // This tells the system that our app can draw behind the system bars.
+  // Enable Edge-to-Edge mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  // *** FIX 2: Make the system bars transparent ***
-  // This makes the navigation bar see-through, so our gradient is visible.
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // Status bar (top)
-    systemNavigationBarColor: Colors.transparent, // Navigation bar (bottom)
+  // Transparent system bars
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.light,
   ));
 
   runApp(const AeroSenseApp());
@@ -32,7 +32,6 @@ class AeroSenseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        // *** FIX: Set the default font family for the entire app ***
         fontFamily: 'oneUI',
         textTheme: const TextTheme(
           bodyMedium: TextStyle(color: Colors.white),
