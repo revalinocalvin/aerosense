@@ -251,37 +251,67 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                 ],
                               ),
                               const SizedBox(height: 32),
-                              // --- THIS IS THE NEW PART ---
-                              if (pm25 > 55)
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 24.0),
-                                  child: AlertCard(),
-                                ),
-                              // --- END OF NEW PART ---
-                              AirQualityCard(pm25: pm25),
-                              const SizedBox(height: 24),
-                              Row(
+                              Stack(
+                                // The alignment ensures the fading card appears at the top of the stack.
+                                alignment: Alignment.topCenter,
                                 children: [
-                                  Expanded(
-                                      child: MetricCard(
-                                          icon: Icons.water_drop_outlined,
-                                          label: 'Humidity',
-                                          value: '${humidity.toInt()}%')),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                      child: MetricCard(
-                                          icon: Icons.filter_drama_outlined,
-                                          label: 'PM 2.5',
-                                          value: pm25.toStringAsFixed(1))),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                      child: MetricCard(
-                                          icon: Icons.cloud_outlined,
-                                          label: 'Air Toxins',
-                                          value: airToxins.toInt().toString())),
+
+                                  // --- CHILD 1: THE SLIDING CONTENT ---
+                                  // This Column contains the content that needs to move.
+                                  Column(
+                                    children: [
+                                      // This is the "magic" part. An invisible container that grows and shrinks.
+                                      TweenAnimationBuilder<double>(
+                                        tween: Tween<double>(begin: 0.0, end: (pm25 > 55) ? 120.0 : 0.0),
+                                        duration: const Duration(milliseconds: 800),
+                                        curve: (pm25 > 55) ? Curves.easeOutCubic : Curves.easeInCubic,
+                                        builder: (context, height, child) {
+                                          return SizedBox(height: height, child: child);
+                                        },
+                                        child: const SizedBox(), // Nothing inside, just spacing
+                                      ),
+
+                                      // This is the actual content that will be pushed down.
+                                      AirQualityCard(pm25: pm25),
+                                      const SizedBox(height: 24),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child: MetricCard(
+                                                  icon: Icons.water_drop_outlined,
+                                                  label: 'Humidity',
+                                                  value: '${humidity.toInt()}%')),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                              child: MetricCard(
+                                                  icon: Icons.filter_drama_outlined,
+                                                  label: 'PM 2.5',
+                                                  value: pm25.toStringAsFixed(1))),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                              child: MetricCard(
+                                                  icon: Icons.cloud_outlined,
+                                                  label: 'Air Toxins',
+                                                  value: airToxins.toInt().toString())),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+
+
+                                  // --- CHILD 2: THE FADING ALERT CARD ---
+                                  // This sits on top of the sliding content. It only fades, it does not slide.
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 600),
+                                    transitionBuilder: (Widget child, Animation<double> animation) {
+                                      return FadeTransition(opacity: animation, child: child);
+                                    },
+                                    child: (pm25 > 55)
+                                        ? AlertCard(key: const ValueKey('unhealthy_alert'))
+                                        : const SizedBox.shrink(key: const ValueKey('healthy_alert')),
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 48),
                             ],
                           ),
                         ),
