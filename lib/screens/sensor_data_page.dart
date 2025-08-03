@@ -1,13 +1,16 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../widgets/air_quality_card.dart';
 import '../widgets/device_status_footer.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/temp_display.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/outsidetemp_model.dart';
 import '../services/outsidetemp_service.dart';
+
 import 'dart:async';
 
 class SensorDataPage extends StatefulWidget {
@@ -88,29 +91,40 @@ class _SensorDataPageState extends State<SensorDataPage> {
 
   // ADD THIS FUNCTION
   void _initializeWeather() async {
-    // First, try to load any cached data to show it instantly
+    // Step 1: Always try to load cached data first for an instant UI.
     await _loadCachedData();
 
-    // Then, fetch live data.
-    try {
-      final newTempData = await _outsideTempService.getOutsideTempByCurrentLocation();
+    // Step 2: Check for an active internet connection.
+    final connectivityResult = await (Connectivity().checkConnectivity());
 
-      // If successful, update the UI and save the new data
-      if (mounted) {
-        setState(() {
-          _cityName = newTempData.cityName;
-          _apiOutsideTemp = newTempData.temperature;
-        });
-        _saveCachedData(newTempData);
+    // Step 3: Only attempt to fetch live data IF there is a connection.
+    if (connectivityResult.contains(ConnectivityResult.mobile) ||
+        connectivityResult.contains(ConnectivityResult.wifi)) {
+
+      // This is your existing live data fetching logic.
+      // It will now ONLY run when the device is online.
+      try {
+        final newTempData = await _outsideTempService.getOutsideTempByCurrentLocation();
+
+        if (mounted) {
+          setState(() {
+            _cityName = newTempData.cityName;
+            _apiOutsideTemp = newTempData.temperature;
+          });
+          _saveCachedData(newTempData);
+        }
+      } catch (e) {
+        // This catch block will now only be triggered by actual errors
+        // like permission denial, not by being offline.
+        print("Weather Service Error: $e");
+        // We can optionally set a more specific error message if we want.
+        // For now, we'll just let the cached data remain.
       }
-    } catch (e) {
-      // If fetching fails (e.g., no permission, no internet), update city name to show an error
-      if (mounted) {
-        setState(() {
-          _cityName = "Could not get location";
-        });
-      }
-      print("Weather Service Error: $e");
+
+    } else {
+      // If there is no internet connection, just print a message and do nothing.
+      // The cached data that was loaded at the beginning will remain on the screen.
+      print("Device is offline. Skipping live weather fetch.");
     }
   }
 
