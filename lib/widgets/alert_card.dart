@@ -16,15 +16,15 @@ class AlertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(12.0),
       // The decoration creates the card's appearance (gradient, rounded corners).
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0),
         // This creates the orange gradient effect.
         gradient: LinearGradient(
           colors: [
-            Colors.orange.shade700,
             Colors.orange.shade400,
+            Colors.orange.shade800,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -44,7 +44,7 @@ class AlertCard extends StatelessWidget {
           const Icon(
             Icons.warning_amber_rounded,
             color: Colors.black, // Using black as requested
-            size: 40.0,
+            size: 60.0,
           ),
           const SizedBox(width: 16.0), // A little space between the icon and text
 
@@ -60,7 +60,7 @@ class AlertCard extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: Colors.black,
-                    fontSize: 20.0,
+                    fontSize: 24.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

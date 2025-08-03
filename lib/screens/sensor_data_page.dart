@@ -262,7 +262,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                     children: [
                                       // This is the "magic" part. An invisible container that grows and shrinks.
                                       TweenAnimationBuilder<double>(
-                                        tween: Tween<double>(begin: 0.0, end: (pm25 > 55) ? 120.0 : 0.0),
+                                        tween: Tween<double>(begin: 0.0, end: (pm25 > 55) ? 100.0 : 0.0),
                                         duration: const Duration(milliseconds: 800),
                                         curve: (pm25 > 55) ? Curves.easeOutCubic : Curves.easeInCubic,
                                         builder: (context, height, child) {
@@ -273,7 +273,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
 
                                       // This is the actual content that will be pushed down.
                                       AirQualityCard(pm25: pm25),
-                                      const SizedBox(height: 24),
+                                      const SizedBox(height: 16),
                                       Row(
                                         children: [
                                           Expanded(
