@@ -5,6 +5,9 @@ import '../widgets/air_quality_card.dart';
 import '../widgets/device_status_footer.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/temp_display.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/outsidetemp_model.dart';
+import '../services/outsidetemp_service.dart';
 import 'dart:async';
 
 class SensorDataPage extends StatefulWidget {
@@ -32,10 +35,17 @@ class _SensorDataPageState extends State<SensorDataPage> {
   double pm25 = 40.1;
   double airToxins = 489.0;
 
+  // ADD THESE NEW VARIABLES
+  late final OutsideTempService _outsideTempService;
+  String _cityName = "Loading...";
+  double? _apiOutsideTemp; // This will hold the temp from the API
+
   @override
   void initState() {
     super.initState();
     _databaseReference = FirebaseDatabase.instance.ref().child('AirMonitor');
+    _outsideTempService = OutsideTempService("c13ff63382e04ae3ab3165209251707");
+    _initializeWeather(); // Kick off the location and weather fetching process
 
     // ✅ Use distinct() to prevent rebuild spam
     _databaseReference
@@ -74,6 +84,57 @@ class _SensorDataPageState extends State<SensorDataPage> {
         setState(() {}); // Refresh footer
       }
     });
+  }
+
+  // ADD THIS FUNCTION
+  void _initializeWeather() async {
+    // First, try to load any cached data to show it instantly
+    await _loadCachedData();
+
+    // Then, fetch live data.
+    try {
+      final newTempData = await _outsideTempService.getOutsideTempByCurrentLocation();
+
+      // If successful, update the UI and save the new data
+      if (mounted) {
+        setState(() {
+          _cityName = newTempData.cityName;
+          _apiOutsideTemp = newTempData.temperature;
+        });
+        _saveCachedData(newTempData);
+      }
+    } catch (e) {
+      // If fetching fails (e.g., no permission, no internet), update city name to show an error
+      if (mounted) {
+        setState(() {
+          _cityName = "Could not get location";
+        });
+      }
+      print("Weather Service Error: $e");
+    }
+  }
+
+// ADD THIS FUNCTION
+  Future<void> _loadCachedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedCity = prefs.getString('lastCityName');
+    final cachedTemp = prefs.getDouble('lastOutsideTemp');
+
+    if (cachedCity != null && cachedTemp != null) {
+      if (mounted) {
+        setState(() {
+          _cityName = cachedCity;
+          _apiOutsideTemp = cachedTemp;
+        });
+      }
+    }
+  }
+
+// ADD THIS FUNCTION
+  Future<void> _saveCachedData(OutsideTemp data) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastCityName', data.cityName);
+    await prefs.setDouble('lastOutsideTemp', data.temperature);
   }
 
   void _resetOfflineTimer() {
@@ -157,8 +218,8 @@ class _SensorDataPageState extends State<SensorDataPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Jakarta',
+                              Text(
+                                _cityName,
                                 style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
@@ -171,7 +232,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   TempDisplay(label: 'Room', temp: roomTemp),
-                                  TempDisplay(label: 'Outside', temp: outsideTemp),
+                                  TempDisplay(label: 'Outside', temp: _apiOutsideTemp ?? outsideTemp),
                                 ],
                               ),
                               const SizedBox(height: 32),
