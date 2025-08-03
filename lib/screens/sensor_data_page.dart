@@ -10,6 +10,7 @@ import '../widgets/metric_card.dart';
 import '../widgets/temp_display.dart';
 import '../models/outsidetemp_model.dart';
 import '../services/outsidetemp_service.dart';
+import '../widgets/alert_card.dart';
 
 import 'dart:async';
 
@@ -250,6 +251,13 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                 ],
                               ),
                               const SizedBox(height: 32),
+                              // --- THIS IS THE NEW PART ---
+                              if (pm25 > 55)
+                                const Padding(
+                                  padding: EdgeInsets.only(bottom: 24.0),
+                                  child: AlertCard(),
+                                ),
+                              // --- END OF NEW PART ---
                               AirQualityCard(pm25: pm25),
                               const SizedBox(height: 24),
                               Row(
