@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart'; // Import Realtime Database
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/services.dart';
 import 'screens/sensor_data_page.dart';
-import 'services/notification_service.dart'; // Your notification service from the previous step
+import 'services/notification_service.dart';
 
-// A global instance of the notification service
+// 1. DEFINE THE STATES FOR OUR NOTIFICATION LOGIC
+enum AirQualityNotificationState {
+  safe,
+  unhealthy,
+}
+
+// 2. CREATE A VARIABLE TO HOLD THE CURRENT STATE
+// We start by assuming the air is safe.
+AirQualityNotificationState _notificationState = AirQualityNotificationState.safe;
+
 final NotificationService _notificationService = NotificationService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
-  // Initialize the notification service
   await _notificationService.init();
 
-  // Set up a listener for Realtime Database changes
+  // Set up the listener with the new, improved logic
   setupDataListener();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -27,28 +34,35 @@ void main() async {
   runApp(const AeroSenseApp());
 }
 
+// 3. UPDATE THE LISTENER WITH STATEFUL LOGIC
 void setupDataListener() {
-  // Define the path to your data in the Realtime Database
-  DatabaseReference sensorRef =
-  FirebaseDatabase.instance.ref('AirMonitor');
+  DatabaseReference sensorRef = FirebaseDatabase.instance.ref('AirMonitor');
 
-  // Listen for changes at that database path
   sensorRef.onValue.listen((DatabaseEvent event) {
     final data = event.snapshot.value;
     if (data != null) {
-      // The data from RTDB is often a Map<dynamic, dynamic>
       final sensorData = Map<String, dynamic>.from(data as Map);
 
       if (sensorData.containsKey('PM25')) {
         final double pm25 = (sensorData['PM25'] as num).toDouble();
 
-        // Check if the air quality is unhealthy
-        if (pm25 > 55) {
+        // Step A: Determine the current state based on the new data.
+        final currentState = (pm25 > 55)
+            ? AirQualityNotificationState.unhealthy
+            : AirQualityNotificationState.safe;
+
+        // Step B: Check if the state has CHANGED from safe to unhealthy.
+        if (currentState == AirQualityNotificationState.unhealthy &&
+            _notificationState == AirQualityNotificationState.safe) {
+          // This block now only runs ONCE when the threshold is first crossed.
           _notificationService.showNotification(
             'Unhealthy Air Quality Alert',
             'The PM2.5 level is currently ${pm25.toStringAsFixed(1)}. Please take precautions.',
           );
         }
+
+        // Step C: ALWAYS update the state variable to remember the current state for next time.
+        _notificationState = currentState;
       }
     }
   });
