@@ -2,85 +2,120 @@
 
 import 'package:flutter/material.dart';
 
-class AlertCard extends StatelessWidget {
-  // We add these parameters so we can customize the text from the outside later.
+class AlertCard extends StatefulWidget {
   final String title;
   final String subtitle;
 
   const AlertCard({
     super.key,
-    this.title = "Unhealthy Air!", // Default title
-    this.subtitle = "Open your windows!", // Default subtitle
+    this.title = "Unhealthy Air!",
+    this.subtitle = "Open your windows!",
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      // The decoration creates the card's appearance (gradient, rounded corners).
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16.0),
-        // This creates the orange gradient effect.
-        gradient: LinearGradient(
-          colors: [
-            Colors.orange.shade400,
-            Colors.orange.shade800,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          // A subtle shadow to lift the card off the background.
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Part 1: The Icon on the left
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: Colors.black, // Using black as requested
-            size: 60.0,
-          ),
-          const SizedBox(width: 16.0), // A little space between the icon and text
+  State<AlertCard> createState() => _AlertCardState();
+}
 
-          // Part 2: The text block on the right
-          // We use Expanded to ensure the text takes up the remaining space
-          // and wraps correctly if it's too long.
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
-              children: [
-                // The main headline
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4.0), // A little space between the two lines of text
-                // The subtitle with the advice
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.normal,
-                  ),
-                  // Allows the text to wrap onto multiple lines if needed.
-                  softWrap: true,
+class _AlertCardState extends State<AlertCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(); // loop forever
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              // this gradient is 3 stops: dark → light → dark
+              gradient: LinearGradient(
+                colors: [
+                  Colors.orange.shade700,
+                  Colors.orange.shade400,
+                  Colors.orange.shade700,
+                ],
+                stops: const [0, 0.5, 1],
+                // repeat the pattern forever
+                tileMode: TileMode.repeated,
+                // slide it by a fraction of its own width
+                transform: SlidingGradientTransform(slidePercent: _ctrl.value),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          ),
-        ],
+            child: child,
+          );
+        },
+        // the content stays static
+        child: Row(
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.black,
+              size: 60,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.subtitle,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+/// A tiny GradientTransform that just shifts the gradient horizontally
+class SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+  const SlidingGradientTransform({required this.slidePercent});
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    // move by a fraction of the width
+    return Matrix4.translationValues(bounds.width * slidePercent, 0, 0);
   }
 }
