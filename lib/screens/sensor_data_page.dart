@@ -11,6 +11,8 @@ import '../widgets/temp_display.dart';
 import '../models/outsidetemp_model.dart';
 import '../services/outsidetemp_service.dart';
 import '../widgets/alert_card.dart';
+import '../models/air_quality_index.dart';
+import '../services/air_quality_service.dart';
 
 import 'dart:async';
 
@@ -39,6 +41,11 @@ class _SensorDataPageState extends State<SensorDataPage> {
   double pm25 = 40.1;
   double airToxins = 489.0;
 
+  // ADD THESE NEW STATE VARIABLES
+  final AirQualityService _airQualityService = AirQualityService();
+  double _airQualityScore = 100.0; // Default to a perfect score
+  String _airQualityCategory = "Breathtaking"; // Default to the best category
+
   // ADD THESE NEW VARIABLES
   late final OutsideTempService _outsideTempService;
   String _cityName = "Loading...";
@@ -64,20 +71,33 @@ class _SensorDataPageState extends State<SensorDataPage> {
           _previousData = data;
 
           // Update sensor values
+          // 1. Update sensor values from Firebase (as before)
           roomTemp = (data['Temperature'] ?? 31.0).toDouble();
           outsideTemp = (data['OutsideTemp'] ?? 27.0).toDouble();
           humidity = (data['Humidity'] ?? 73.0).toDouble();
           pm25 = (data['PM25'] ?? 40.1).toDouble();
           airToxins = (data['MQ135'] ?? 489.0).toDouble();
 
-          // Device status logic
-          if (!_isFirstLoad) {
-            _updateStatus();
-          } else {
-            _isFirstLoad = false;
-          }
+          // 2. Use the service to calculate the new Air Quality Index
+          final AirQualityIndex aqIndex = _airQualityService.calculate(
+            pm: pm25,
+            gas: airToxins,
+            humidity: humidity,
+          );
 
-          setState(() {}); // Refresh UI
+          // 3. Update the state with ALL new values
+          setState(() {
+            // This setState block now also includes the new AQI results
+            _airQualityScore = aqIndex.score;
+            _airQualityCategory = aqIndex.category;
+
+            // Device status logic (this also needs to be inside setState)
+            if (!_isFirstLoad) {
+              _updateStatus();
+            } else {
+              _isFirstLoad = false;
+            }
+          });
         }
       }
     });
@@ -262,9 +282,9 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                     children: [
                                       // This is the "magic" part. An invisible container that grows and shrinks.
                                       TweenAnimationBuilder<double>(
-                                        tween: Tween<double>(begin: 0.0, end: (pm25 > 55) ? 100.0 : 0.0),
+                                        tween: Tween<double>(begin: 0.0, end: (_airQualityCategory == 'Unhealthy' || _airQualityCategory == 'Dangerous') ? 100.0 : 0.0),
                                         duration: const Duration(milliseconds: 800),
-                                        curve: (pm25 > 55) ? Curves.easeOutCubic : Curves.easeInCubic,
+                                        curve: (_airQualityCategory == 'Unhealthy' || _airQualityCategory == 'Dangerous') ? Curves.easeOutCubic : Curves.easeInCubic,
                                         builder: (context, height, child) {
                                           return SizedBox(height: height, child: child);
                                         },
@@ -272,7 +292,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                       ),
 
                                       // This is the actual content that will be pushed down.
-                                      AirQualityCard(pm25: pm25),
+                                      AirQualityCard(score: _airQualityScore, category: _airQualityCategory),
                                       const SizedBox(height: 16),
                                       Row(
                                         children: [
@@ -306,7 +326,7 @@ class _SensorDataPageState extends State<SensorDataPage> {
                                     transitionBuilder: (Widget child, Animation<double> animation) {
                                       return FadeTransition(opacity: animation, child: child);
                                     },
-                                    child: (pm25 > 55)
+                                    child: (_airQualityCategory == 'Unhealthy' || _airQualityCategory == 'Dangerous')
                                         ? AlertCard(key: const ValueKey('unhealthy_alert'))
                                         : const SizedBox.shrink(key: const ValueKey('healthy_alert')),
                                   ),
