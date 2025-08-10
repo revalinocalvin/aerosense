@@ -12,7 +12,18 @@ class AirQualityService {
     // --- Part 1: Calculate Penalties based on your formulas ---
 
     // P_PM = 0.43 × max(0, PM - 35)
-    final double pmPenalty = 0.43 * max(0, pm - 35);
+     // === Tweakable Parameters for PM2.5 Penalty ===
+    const double pmPenaltyFactor = 0.43;      // Your base multiplier.
+    const double pmSafeThreshold = 35;        // The value where penalties start.
+    const double pmProgressiveExponent = 1.6; // The "aggressiveness". 1.0 = linear, 2.0 = quadratic.
+    const double pmProgressiveScaler = 10.0;    // A divisor to keep the penalty value in a reasonable range.
+    // === End of Tweakable Parameters ===
+
+    // Calculate the deviation from the safe threshold.
+    final double pmDeviation = max(0, pm - pmSafeThreshold);
+
+    // The new progressive penalty calculation.
+    final double pmPenalty = pmPenaltyFactor * pow(pmDeviation / pmProgressiveScaler, pmProgressiveExponent);
 
     // NEW: P_Gas = 0.05 × max(0, Gas - 500)
     final double gasPenalty = 0.05 * max(0, gas - 500);
