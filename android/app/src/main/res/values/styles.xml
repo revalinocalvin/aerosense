@@ -5,16 +5,15 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
-
         <!-- *** THE MAIN FIX IS HERE *** -->
         <!-- 1. We MUST set this to true so the system will draw our custom colors. -->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <!-- 2. Now we set the colors to transparent. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-
         <!-- These lines can remain as they are -->
         <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started. -->

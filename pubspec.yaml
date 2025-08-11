@@ -112,15 +112,15 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.jfif"
+  image_path: "assets/icon/icon.png"
 
 flutter_native_splash:
-  color: "#ffffff"         # background color
-  image: assets/icon/icon.jfif # or your custom splash image
+  color: "#2190d5"         # background color
+  image: assets/icon/icon.png # or your custom splash image
   android: true
   ios: true
   android_gravity: center
 
   android_12:
-    image: assets/icon/icon.jfif
-    icon_background_color: "#ffffff"
+    image: assets/icon/icon.png
+    icon_background_color: "#2190d5"
