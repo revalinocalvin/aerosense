@@ -13,9 +13,9 @@ class AirQualityService {
 
     // P_PM = 0.43 × max(0, PM - 35)
      // === Tweakable Parameters for PM2.5 Penalty ===
-    const double pmPenaltyFactor = 0.43;      // Your base multiplier.
-    const double pmSafeThreshold = 35;        // The value where penalties start.
-    const double pmProgressiveExponent = 1.6; // The "aggressiveness". 1.0 = linear, 2.0 = quadratic.
+    const double pmPenaltyFactor = 1.501;      // Your base multiplier.
+    const double pmSafeThreshold = 10;        // The value where penalties start.
+    const double pmProgressiveExponent = 1.37; // The "aggressiveness". 1.0 = linear, 2.0 = quadratic.
     const double pmProgressiveScaler = 10.0;    // A divisor to keep the penalty value in a reasonable range.
     // === End of Tweakable Parameters ===
 
